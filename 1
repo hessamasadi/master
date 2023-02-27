@@ -6,47 +6,36 @@ from keras.models import Sequential
 from keras.layers import Dense, Flatten
 from keras.utils import to_categorical
 from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, log_loss, classification_report
 df = pd.read_excel(r'D:\Career\wrtiting paper\first paper\FGAP\neural network\New folder\data.xlsx')
 second_row = df.iloc[0,3:]
 second_row_list = second_row.tolist()
 first_row = []
 for i in second_row_list:
     first_row.append(i)
-print(len(first_row))
-first_row[0]
 column1 = df.loc[1:298 ,'Unnamed: 2']
 column1_list = column1.tolist()
 first_column = []
 for i in column1_list:
     first_column.append(i)
-print(len(first_column))
 column1 = df.loc[1:298 ,'Unnamed: 2']
 column1_list = column1.tolist()
 first_column = []
 for i in column1_list:
     first_column.append(i)
-print(len(first_column))
-first_column[0]
 input_list = []
 num_vars = 298
 for i in range(1, num_vars+1):
     var_name = f"input_{i}"
     exec(f"{var_name} = []")
     input_list.append(eval(var_name))
-print(input_list)
-#for i in range(1, num_vars+1):
-   # var_name = f"label_{i}"
-   # print(f"{var_name}: {eval(var_name)}")
 output_list = []
 num_vars = 298
 for i in range(1, num_vars+1):
     var_name = f"output_{i}"
     exec(f"{var_name} = []")
     output_list.append(eval(var_name))
-print(output_list)
-#for i in range(1, num_vars+1):
-   # var_name = f"feature_{i}"
-   # print(f"{var_name}: {eval(var_name)}")
 indx = 0
 col_indx = 0
 input_indx = 0
@@ -59,7 +48,6 @@ while indx < 298:
 
 
     
-input_list[297][1]
 new_input_data = []
 
 for sublist in input_list:
@@ -67,15 +55,11 @@ for sublist in input_list:
     for i, element in enumerate(sublist):
         new_sublist.append([float(x) for x in element.split(',')])
     new_input_data.append(new_sublist)
-new_input_data[1][5]
 third_row = df.iloc[1,3:]
 third_row_list = third_row.tolist()
 third_row = []
 for i in third_row_list:
     third_row.append(i)
-print(len(third_row))
-print(third_row)
-third_row[0]
 row_indx = 1
 indx = 0
 while indx < 298:
@@ -104,12 +88,9 @@ def one_hot_encode(sublist_list):
         feature_names.append(element)
     return encoded_data, feature_names
 encoded_list, feature_list = one_hot_encode(output_list)
-feature_list[0]
-print(encoded_list[0])
+feature_list
 input_data = np.reshape(new_input_data , (298*298, 10))
 output_data = np.reshape(encoded_list , (298*298, 33))
-print(input_data)
-print(output_data)
 input_data = np.reshape(new_input_data , (298*298, 10))
 output_data = np.reshape(encoded_list , (298*298, 33))
 
@@ -121,14 +102,27 @@ model.compile(loss='categorical_crossentropy', optimizer='adam')
 
 
 model.fit(input_data, output_data , epochs=40)
-input_data = np.array([[-3.0, -1.0, -1.0, -3.0, -2.0, -3.0, -1.0, -1.0, -2.0, -2.0]])
+input_data = np.array([new_input_data[0][4]])
 input_data = np.reshape(input_data, (1, 10))
 
 predictions = model.predict(input_data)
+print(predictions, "\n")
 
-
-print(predictions)
 predicted_class = model.predict(input_data.reshape(1, 10))
 predicted_class_index = predicted_class.argmax()
-print("Predicted class index:", predicted_class_index)
+featurss = feature_list[predicted_class_index]
+print("Predicted class index:", predicted_class_index,'\n the label of this class index:', featurss)
+input_data = np.reshape(new_input_data , (298*298, 10))
+output_data = np.reshape(encoded_list , (298*298, 33))
+
+train_data, test_data, train_labels, test_labels = train_test_split(input_data, output_data, test_size=0.2, random_state=42)
+y_pred_prob = model.predict(test_data)
+y_pred = np.argmax(y_pred_prob, axis=1)
+y_true = np.argmax(test_labels, axis=1)
+
+accuracy = accuracy_score(y_true, y_pred)
+print(f'Accuracy: {accuracy:.4f}')
+
+log_loss_var = log_loss(test_labels, y_pred_prob)
+print(f'Log loss: {log_loss_var:.4f}')
  
